@@ -6,4 +6,4 @@
 [![Total Downloads](http://poser.pugx.org/ecotone/ecotone/downloads)](https://packagist.org/packages/ecotone/ecotone)
 [![PHP Version Require](http://poser.pugx.org/ecotone/ecotone/require/php)](https://packagist.org/packages/ecotone/ecotone)
 
-Provides super quick start for Ecotone Lite Applications
+Provides super quick start for Ecotone Lite Application
