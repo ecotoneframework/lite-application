@@ -16,7 +16,7 @@ class EcotoneLiteApplication
             $configuration = ServiceConfiguration::createWithDefaults();
         }
 
-        if (!$configuration->getLoadedCatalog()) {
+        if ($configuration->isLoadingCatalogEnabled() && !$configuration->getLoadedCatalog()) {
             $configuration = $configuration
                                 ->withLoadCatalog("src");
         }
