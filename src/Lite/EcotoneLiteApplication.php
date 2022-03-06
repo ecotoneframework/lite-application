@@ -2,14 +2,18 @@
 
 namespace Ecotone\Lite;
 
-use DI\Container;
+use Ecotone\AnnotationFinder\FileSystem\FileSystemAnnotationFinder;
 use Ecotone\Messaging\Config\ConfiguredMessagingSystem;
+use Ecotone\Messaging\Config\MessagingSystemConfiguration;
 use Ecotone\Messaging\Config\ServiceConfiguration;
-use Ecotone\Messaging\ConfigurationVariableService;
+use Ecotone\Messaging\Config\StubConfiguredMessagingSystem;
+use Ecotone\Messaging\Handler\Logger\EchoLogger;
 use Ecotone\Messaging\InMemoryConfigurationVariableService;
 
 class EcotoneLiteApplication
 {
+    const CONFIGURED_MESSAGING_SYSTEM = ConfiguredMessagingSystem::class;
+
     public static function boostrap(array $objectsToRegister = [], array $configurationVariables = [], ?ServiceConfiguration $configuration = null, bool $cacheConfiguration = false, ?string $pathToRootCatalog = null): ConfiguredMessagingSystem
     {
         if (!$configuration) {
@@ -24,56 +28,40 @@ class EcotoneLiteApplication
 //        moving out of vendor catalog
         $rootCatalog = $pathToRootCatalog ?: __DIR__ . "/../../../../../";
 
-        $container = new class($configuration, $cacheConfiguration, $configurationVariables) implements GatewayAwareContainer {
-            private Container $container;
-
-            public function __construct(ServiceConfiguration $serviceConfiguration, bool $cacheConfiguration, array $configurationVariables)
-            {
-                $builder = new \DI\ContainerBuilder();
-
-                if ($cacheConfiguration) {
-                    $cacheDirectoryPath = $serviceConfiguration->getCacheDirectoryPath() ?? sys_get_temp_dir();
-                    $builder = $builder
-                            ->enableCompilation($cacheDirectoryPath . '/ecotone')
-                            ->writeProxiesToFile(true, __DIR__ . '/ecotone/proxies')
-                            ->ignorePhpDocErrors(true);
-                }
-
-                $this->container = $builder->build();
-                $this->container->set(ConfigurationVariableService::REFERENCE_NAME, InMemoryConfigurationVariableService::create($configurationVariables));
-            }
-
-            public function get($id)
-            {
-                return $this->container->get($id);
-            }
-
-            public function has($id)
-            {
-                return $this->container->has($id);
-            }
-
-            public function set(string $id, object $service)
-            {
-                $this->container->set($id, $service);
-            }
-
-            public function addGateway(string $referenceName, object $gateway): void
-            {
-                $this->container->set($referenceName, $gateway);
-            }
-        };
+        $container = new LiteDIContainer($configuration, $cacheConfiguration, $configurationVariables);
 
         foreach ($objectsToRegister as $referenceName => $object) {
             $container->set($referenceName, $object);
         }
 
-        return EcotoneLiteConfiguration::createWithConfiguration(
+        $configuration = $configuration->withNamespaces(array_merge(
+            $configuration->getNamespaces(),
+            [FileSystemAnnotationFinder::FRAMEWORK_NAMESPACE]
+        ));
+
+        $messagingConfiguration       = MessagingSystemConfiguration::prepare(
             $rootCatalog,
             $container,
+            InMemoryConfigurationVariableService::create($configurationVariables),
             $configuration,
-            $configurationVariables,
             $cacheConfiguration
         );
+
+        foreach ($messagingConfiguration->getRegisteredGateways() as $gatewayProxyBuilder) {
+            $container->set($gatewayProxyBuilder->getReferenceName(), ProxyGenerator::createFor(
+                $gatewayProxyBuilder->getReferenceName(),
+                $container,
+                $gatewayProxyBuilder->getInterfaceName(),
+                $cacheConfiguration ? $configuration->getCacheDirectoryPath() : sys_get_temp_dir()
+            ));
+        }
+
+        $messagingSystem = $messagingConfiguration->buildMessagingSystemFromConfiguration(
+            new PsrContainerReferenceSearchService($container, ["logger" => new EchoLogger(), ConfiguredMessagingSystem::class => new StubConfiguredMessagingSystem()])
+        );
+
+        $container->set(self::CONFIGURED_MESSAGING_SYSTEM, $messagingSystem);
+
+        return $messagingSystem;
     }
 }

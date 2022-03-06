@@ -20,10 +20,8 @@ class EcotoneLiteApplicationTest extends TestCase
             pathToRootCatalog: __DIR__ . "/../../../"
         );
 
-        /** @var CommandBus $commandBus */
-        $commandBus = $ecotoneLite->getGatewayByName(CommandBus::class);
-        /** @var QueryBus $queryBus */
-        $queryBus = $ecotoneLite->getGatewayByName(QueryBus::class);
+        $commandBus = $ecotoneLite->getCommandBus();
+        $queryBus = $ecotoneLite->getQueryBus();
 
         $personId = 100;
         $commandBus->send(new AddMoney($personId, 1));
