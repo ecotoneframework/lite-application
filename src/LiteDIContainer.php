@@ -11,7 +11,7 @@ use Ecotone\Messaging\Handler\Type;
 use Ecotone\Messaging\Handler\TypeDescriptor;
 use Ecotone\Messaging\InMemoryConfigurationVariableService;
 
-class LiteDIContainer implements GatewayAwareContainer, ReferenceTypeFromNameResolver
+class LiteDIContainer implements \Ecotone\Lite\GatewayAwareContainer, ReferenceTypeFromNameResolver
 {
     private Container $container;
 
