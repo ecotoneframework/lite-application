@@ -16,15 +16,18 @@
         }
     ],
     "keywords": [
+        "ecotone",
+        "ecotone-lite",
+        "psr-11",
         "ddd",
         "cqrs",
-        "messaging",
-        "eip",
-        "distributed architecture",
-        "ecotone",
-        "ddd and cqrs on top of eip"
+        "event-sourcing",
+        "sagas",
+        "durable-workflows",
+        "workflow",
+        "framework-agnostic"
     ],
-    "description": "Ecotone Lite — framework-agnostic bootstrap for PSR-11 applications with CQRS, Event Sourcing, Sagas, and Workflows.",
+    "description": "Ecotone Lite — framework-agnostic bootstrap for PSR-11 applications with CQRS, Event Sourcing, Sagas, Durable Workflows, and Outbox.",
     "autoload": {
         "psr-4": {
             "Ecotone\\Lite\\": "src"
@@ -36,8 +39,8 @@
         }
     },
     "require": {
-        "ecotone/ecotone": "~1.313.1",
-        "ecotone/jms-converter": "~1.313.1",
+        "ecotone/ecotone": "~1.313.2",
+        "ecotone/jms-converter": "~1.313.2",
         "php-di/php-di": "^7.0.5"
     },
     "require-dev": {
@@ -48,7 +51,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "1.313.1-dev"
+            "dev-main": "1.313.2-dev"
         },
         "ecotone": {
             "repository": "lite-application"
@@ -64,7 +67,7 @@
                 "description": "Allows to use Enterprise features of Ecotone. For more information please write to support@simplycodedsoftware.com"
             }
         },
-        "release-time": "2026-05-18 19:18:46"
+        "release-time": "2026-05-22 17:45:28"
     },
     "scripts": {
         "tests:phpstan": "vendor/bin/phpstan",
